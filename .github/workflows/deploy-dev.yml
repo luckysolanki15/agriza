@@ -3,7 +3,7 @@ name: Deploy to Development
 on:
   push:
     branches:
-      - development
+      - projectDevelopment
 
 jobs:
   deploy:
@@ -30,14 +30,20 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Mock Deploy Step
-        run: |
-          echo "Pretending to deploy backend..."
-          echo "Would run: git pull origin development"
-          echo "Would run: npm install"
-          echo "Would run: pm2 restart backend-app"
+      - name: Deploy via SSH (Backend + Frontend)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /path/to/your/dev/backend
+            git pull origin development
+            npm install
+            pm2 restart backend-app
 
-          echo "Pretending to deploy frontend..."
-          echo "Would run: npm install"
-          echo "Would run: npm run build"
-          echo "Would serve the build on port 3000"
+            cd /path/to/your/dev/frontend
+            git pull origin development
+            npm install
+            npm run build
+            serve -s build -l 3000
